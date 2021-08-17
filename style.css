@@ -1,0 +1,2 @@
+* { padding: 0; margin: 0;}  /* 全称セレクタ *: 全てのスタイルを対象にする */
+canvas { background: #eee; display: block; margin: 0 auto;} /* tag を指定 */
