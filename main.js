@@ -31,7 +31,7 @@ function createCourseBlocks() {
   let dh = [-diffHeight, 0, diffHeight][randomInt(3)];
   const course = [h];
 
-  for (let i = 0; i < laps * courseBlockCountToFillCanvas; i++) {
+  for (let i = 1; i < laps * courseBlockCountToFillCanvas; i++) {
     // 穴あけ
     if (course[i - 1] > 0) {                 // 1つ前にブロックありの場合
       if (randomInt(100) < 10) {
@@ -39,7 +39,7 @@ function createCourseBlocks() {
         continue;
       }
     } else {
-      if (randomInt(100) < 90) {
+      if (randomInt(100) < 80) {
         course.push(0);
         continue;
       }

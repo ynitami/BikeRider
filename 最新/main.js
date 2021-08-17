@@ -79,22 +79,20 @@ function createCourse() {
       }
     }
 
-    if (h > courseMaxHeight || h < courseMinHeight) {
-      dh = h > courseMaxHeight ? -courseDiffHeight : courseDiffHeight;
-      h += dh;
-      res.push(h);
-      continue;
-    }
-
-    if (dh === 0) {
-      dh = [-courseDiffHeight, 0, courseDiffHeight][randomInt(0, 2)];
+    if (dh === 0) {                           // 前のブロックが高さ変化なし
+      dh = [-courseDiffHeight, 0, courseDiffHeight][randomInt(0,2)];
     } else {
-      dh = [dh, dh, dh, dh, 0][randomInt(0, 4)];
+      if (h > courseMaxHeight) {
+        dh = -courseDiffHeight;
+      } else if (h < courseMinHeight) {
+        dh = courseDiffHeight;
+      } else {
+        dh = [dh, dh, dh, dh, 0][randomInt(0,4)];
+      }
     }
     h += dh;
     res.push(h);
   }
-
   return res;
 }
 
