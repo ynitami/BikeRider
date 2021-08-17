@@ -1,5 +1,3 @@
-// live server の追加 
-
 /**
  * @type {HTMLCanvasElement}
 */
@@ -34,13 +32,17 @@ function createCourseBlocks() {
   const course = [h];
 
   for (let i = 0; i < laps * courseBlockCountToFillCanvas; i++) {
-    if (h > maxHeight) {
-      dh = -diffHeight;
-    } else if (h < minHeight) {
-      dh = diffHeight;
+    if (dh === 0) {                           // 前のブロックが高さ変化なし
+      dh = [-diffHeight, 0, diffHeight][randomInt(3)];
     } else {
-      dh = [dh, dh, dh, dh, 0][randomInt(5)];
-    };
+      if (h > maxHeight) {
+        dh = -diffHeight;
+      } else if (h < minHeight) {
+        dh = diffHeight;
+      } else {
+        dh = [dh, dh, dh, dh, 0][randomInt(5)];
+      }
+    }
     h += dh;
     course.push(h);
   }
@@ -48,17 +50,35 @@ function createCourseBlocks() {
 }
 
 function randomInt(num) {
-  return Math.floor(Math.random() * num); // 説明
+  return Math.floor(Math.random() * num);
 }
+
+// function main() {
+//   setCanvasSize();
+//   courseBlocks = createCourseBlocks();
+//   console.log(courseBlocks);
+
+//   for (let i = 0; i < laps * courseBlockCountToFillCanvas; i++) {
+//     drawRectOnGround(courseBlockWidth * i, courseBlockWidth, courseBlocks[i])
+//   }
+// };
 
 function main() {
   setCanvasSize();
   courseBlocks = createCourseBlocks();
-  console.log(courseBlocks);
+  let courseStartIndex = 0;
 
-  for (let i = 0; i < laps * courseBlockCountToFillCanvas; i++) {
-    drawRectOnGround(courseBlockWidth * i, courseBlockWidth, courseBlocks[i])
-  }
+  setInterval(function () {
+    ctx.clearRect(0, 0, canvasWidth, canvasHeight); // 一度範囲内のブロックを全消去
+
+    for (let i = 0; i < courseBlockCountToFillCanvas; i++) { // 101周目(10001個目)以降はindexを1から再使用
+      const courseIndex = (courseStartIndex + i) % courseBlocks.length; // 1st interval: 0~99, 2nd: 1~100,...
+      drawRectOnGround(courseBlockWidth * i, courseBlockWidth, courseBlocks[courseIndex])
+    }
+
+    courseStartIndex++;
+
+  }, 50);
 };
 
 main();
