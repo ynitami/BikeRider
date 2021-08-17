@@ -32,6 +32,19 @@ function createCourseBlocks() {
   const course = [h];
 
   for (let i = 0; i < laps * courseBlockCountToFillCanvas; i++) {
+    // 穴あけ
+    if (course[i - 1] > 0) {                 // 1つ前にブロックありの場合
+      if (randomInt(100) < 5) {
+        course.push(0);
+        continue;
+      }
+    } else {
+      if (randomInt(100) < 60) {
+        course.push(0);
+        continue;
+      }
+    }
+    
     if (dh === 0) {                           // 前のブロックが高さ変化なし
       dh = [-diffHeight, 0, diffHeight][randomInt(3)];
     } else {
@@ -53,23 +66,13 @@ function randomInt(num) {
   return Math.floor(Math.random() * num);
 }
 
-// function main() {
-//   setCanvasSize();
-//   courseBlocks = createCourseBlocks();
-//   console.log(courseBlocks);
-
-//   for (let i = 0; i < laps * courseBlockCountToFillCanvas; i++) {
-//     drawRectOnGround(courseBlockWidth * i, courseBlockWidth, courseBlocks[i])
-//   }
-// };
-
 function main() {
   setCanvasSize();
   courseBlocks = createCourseBlocks();
   let courseStartIndex = 0;
 
   setInterval(function () {
-    ctx.clearRect(0, 0, canvasWidth, canvasHeight); // 一度範囲内のブロックを全消去
+    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
     for (let i = 0; i < courseBlockCountToFillCanvas; i++) { // 101周目(10001個目)以降はindexを1から再使用
       const courseIndex = (courseStartIndex + i) % courseBlocks.length; // 1st interval: 0~99, 2nd: 1~100,...
