@@ -17,7 +17,7 @@ const courseBlockWidth = canvasWidth / courseBlockCountToFillCanvas;
 
 const playerIndexInCanvas = 20;
 const playerX = courseBlockWidth * playerIndexInCanvas + courseBlockWidth / 2;
-let playerY = canvasHeight;
+let playerY = minHeight + diffHeight * 10;
 const dy = 5;
 
 let upPressed = false;
@@ -77,11 +77,9 @@ function randomInt(num) {
 
 function drawPlayer(x, y, radius) {
   const circle = new Path2D();
-  circle.arc(x, canvasHeight - y - radius, radius, 0, 2 * Math.PI);
-  const prevFillStyle = ctx.fillStyle;
+  circle.arc(x, canvasHeight - y - radius, radius, Math.PI, 3 * Math.PI);
   ctx.fillStyle = "blue";
   ctx.fill(circle);
-  ctx.fillStyle = prevFillStyle;
 };
 
 function keyDownHandler(e) {
@@ -109,24 +107,26 @@ function main() {
     }
 
     const courseHeightAtPlayerIndexInCanvas = courseBlocks[courseStartIndex + playerIndexInCanvas]
-    // 
+    // Playerの位置でジャンプの可能不可能を判断
+    // コースブロックとほぼ高さ一緒の時
     if (
       playerY == courseHeightAtPlayerIndexInCanvas ||
       playerY == courseHeightAtPlayerIndexInCanvas + diffHeight ||
       playerY == courseHeightAtPlayerIndexInCanvas - diffHeight
     ) {
-      if (upPressed) {
-        playerY += dy * 20;
-      } else {
-        playerY = courseHeightAtPlayerIndexInCanvas
-      }
-    } else if (
-      playerY >= courseHeightAtPlayerIndexInCanvas &&
-      playerY <= courseHeightAtPlayerIndexInCanvas + dy
-    ) {
-      playerY = courseHeightAtPlayerIndexInCanvas;
-    } else {
-      playerY -= dy;
+    //   // if (upPressed) {
+    //   //   playerY += dy * 20;
+    //   // } else {
+      playerY = courseHeightAtPlayerIndexInCanvas
+    //   // }
+    //   // // ジャンプ後落下中の時
+    //   // } else if (
+      //   playerY >= courseHeightAtPlayerIndexInCanvas &&
+      //   playerY <= courseHeightAtPlayerIndexInCanvas + dy
+      // ) {
+      //   playerY = courseHeightAtPlayerIndexInCanvas;
+      // } else {
+      //   playerY -= dy;
     }
 
     drawPlayer(playerX, playerY, 10);
