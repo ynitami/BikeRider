@@ -8,6 +8,7 @@ const canvasWidth = 720;
 const canvasHeight = 480;
 
 let courseBlocks;
+let courseStartIndex = 0;
 const maxHeight = 300;
 const minHeight = 50;
 const diffHeight = 5;
@@ -17,7 +18,7 @@ const courseBlockWidth = canvasWidth / courseBlockCountToFillCanvas;
 
 const playerIndexInCanvas = 20;
 const playerX = courseBlockWidth * playerIndexInCanvas + courseBlockWidth / 2;
-let playerY = minHeight + diffHeight * 10;
+let playerY = canvasHeight;
 const dy = 5;
 
 let upPressed = false;
@@ -42,15 +43,17 @@ function createCourseBlocks() {
 
   for (let i = 1; i < laps * courseBlockCountToFillCanvas; i++) {
     // 穴あけ
-    if (course[i - 1] > 0) {                 // 1つ前にブロックありの場合
-      if (randomInt(100) < 10) {
-        course.push(0);
-        continue;
-      }
-    } else {
-      if (randomInt(100) < 80) {
-        course.push(0);
-        continue;
+    if (i > courseBlockCountToFillCanvas) {
+      if (course[i - 1] > 0) {                 // 1つ前にブロックありの場合
+        if (randomInt(100) < 5) {
+          course.push(0);
+          continue;
+        }
+      } else {
+        if (randomInt(100) < 80) {
+          course.push(0);
+          continue;
+        }
       }
     }
 
@@ -93,10 +96,14 @@ function keyUpHandler(e) {
   }
 }
 
+function drawRecord() {
+  ctx.font = "24px monospace";
+  ctx.fillText(`${courseStartIndex} m`, 60, 40);
+}
+
 function main() {
   setCanvasSize();
   courseBlocks = createCourseBlocks();
-  let courseStartIndex = 0;
 
   setInterval(function () {
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
@@ -114,22 +121,23 @@ function main() {
       playerY == courseHeightAtPlayerIndexInCanvas + diffHeight ||
       playerY == courseHeightAtPlayerIndexInCanvas - diffHeight
     ) {
-    //   // if (upPressed) {
-    //   //   playerY += dy * 20;
-    //   // } else {
-      playerY = courseHeightAtPlayerIndexInCanvas
-    //   // }
-    //   // // ジャンプ後落下中の時
-    //   // } else if (
-      //   playerY >= courseHeightAtPlayerIndexInCanvas &&
-      //   playerY <= courseHeightAtPlayerIndexInCanvas + dy
-      // ) {
-      //   playerY = courseHeightAtPlayerIndexInCanvas;
-      // } else {
-      //   playerY -= dy;
+      if (upPressed) {
+        playerY += dy * 20;
+      } else {
+        playerY = courseHeightAtPlayerIndexInCanvas
+      }
+      // // ジャンプ後落下中の時
+    } else if (
+      playerY >= courseHeightAtPlayerIndexInCanvas &&
+      playerY <= courseHeightAtPlayerIndexInCanvas + dy
+    ) {
+      playerY = courseHeightAtPlayerIndexInCanvas;
+    } else {
+      playerY -= dy;
     }
 
     drawPlayer(playerX, playerY, 10);
+    drawRecord();
     courseStartIndex++;
 
   }, 50);
