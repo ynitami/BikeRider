@@ -13,26 +13,23 @@ let courseStartIndex = 0;
 const maxHeight = 300;
 const minHeight = 50;
 const diffHeight = 5;
-const courseBlockCountToFillCanvas = 100;
+const courseBlockCountToFillCanvas = 50;
 const laps = 100;
 const courseBlockWidth = canvasWidth / courseBlockCountToFillCanvas;
 
 const playerIndexInCanvas = 20;
 const playerX = courseBlockWidth * playerIndexInCanvas + courseBlockWidth / 2;
-let playerY = canvasHeight;
-const dt = 50;
+let playerY = canvasHeight - 50;
+// const dt = 50;
 
 function dy(time) {
   const v0 = 30;
   const g = 3;
-  return v0 - g * time;
+  let v;
+  return v = v0 - g * time;
 }
 const timeAtMaxHeight = 10;
 let timeAfterJump = timeAtMaxHeight;
-
-let jumpCount = 0;
-let isRightAfterJump = false;
-const idleTimeToJump = 11 * dt;
 
 function setCanvasSize() {
   canvas.width = canvasWidth;
@@ -127,40 +124,24 @@ function main() {
       drawRectOnGround(courseBlockWidth * i, courseBlockWidth, courseBlocks[courseIndex])
     }
 
-    const prevPlayerY = playerY;
-    let nextPlayerY;
-
+    const prevPlayerY = playerY; // 1つ前の値
+    let nextPlayerY; // 今のフレーム
     const prevCourseHeight =
       courseBlocks[(courseStartIndex + playerIndexInCanvas - 1) % courseBlocks.length];
-    const nextCourseHeight =
+    const nextCourseHeight = // courseHeightAtPlayerIndexInCanvas
       courseBlocks[(courseStartIndex + playerIndexInCanvas) % courseBlocks.length];
 
     if (prevPlayerY > prevCourseHeight) {
       // ジャンプ中
       if (prevPlayerY + dy(timeAfterJump) > nextCourseHeight) {
-        // まだ空中
-        if (upPressed && !isRightAfterJump && jumpCount < 2) {
-          timeAfterJump = 0;
           nextPlayerY = prevPlayerY + dy(timeAfterJump);
           timeAfterJump++;
-
-          jumpCount++;
-          isRightAfterJump = true;
-          setTimeout(function () {
-            isRightAfterJump = false;
-          }, idleTimeToJump);
-        } else {
-          nextPlayerY = prevPlayerY + dy(timeAfterJump);
-          timeAfterJump++;
-        }
-      } else {
+      } else { //1つ前のフレームから自由落下を続けると、コースブロックにぶつかる場合
         // NOTE: prevPlayerY > nextCourseHeight だと、登りのコースへの着地に失敗する場合がある
         if (prevPlayerY >= nextCourseHeight - diffHeight) {
           // 着地OK
           nextPlayerY = nextCourseHeight;
           timeAfterJump = 0;
-
-          jumpCount = 0;
         } else {
           // 壁にぶつかる
           clearInterval(game);
@@ -176,22 +157,16 @@ function main() {
         prevPlayerY + diffHeight === nextCourseHeight ||
         prevPlayerY - diffHeight === nextCourseHeight
       ) {
-        if (upPressed) {
+        if (upPressed) { // 鉛直投げ上げ運動
           timeAfterJump = 0;
           nextPlayerY = prevPlayerY + dy(timeAfterJump);
           timeAfterJump++;
-
-          jumpCount++;
-          isRightAfterJump = true;
-          setTimeout(function () {
-            isRightAfterJump = false;
-          }, idleTimeToJump);
-        } else {
+        } else { // ただ転がるとき
           nextPlayerY = nextCourseHeight;
         }
-      } else {
+      } else { // コースブロックの高さ変動が著しい ＝ 今のフレーム穴・崖
         // 次が崖 または境界
-        timeAfterJump = timeAtMaxHeight;
+        timeAfterJump = timeAtMaxHeight; // 10
         nextPlayerY = prevPlayerY + dy(timeAfterJump);
         timeAfterJump++;
       }
