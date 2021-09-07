@@ -9,6 +9,7 @@ const canvasHeight = 480;
 
 let courseBlocks;
 let courseStartIndex = 0;
+
 const maxHeight = 300;
 const minHeight = 50;
 const diffHeight = 5;
@@ -19,11 +20,19 @@ const courseBlockWidth = canvasWidth / courseBlockCountToFillCanvas;
 const playerIndexInCanvas = 20;
 const playerX = courseBlockWidth * playerIndexInCanvas + courseBlockWidth / 2;
 let playerY = canvasHeight;
-const dy = 5;
+const dt = 50;
 
-let upPressed = false;
-document.addEventListener("keydown", keyDownHandler, false);
-document.addEventListener("keyup", keyUpHandler, false);
+function dy(time) {
+  const v0 = 30;
+  const g = 3;
+  return v0 - g * time;
+}
+const timeAtMaxHeight = 10;
+let timeAfterJump = timeAtMaxHeight;
+
+let jumpCount = 0;
+let isRightAfterJump = false;
+const idleTimeToJump = 11 * dt;
 
 function setCanvasSize() {
   canvas.width = canvasWidth;
@@ -45,12 +54,12 @@ function createCourseBlocks() {
     // 穴あけ
     if (i > courseBlockCountToFillCanvas) {
       if (course[i - 1] > 0) {                 // 1つ前にブロックありの場合
-        if (randomInt(100) < 5) {
+        if (randomInt(100) < 10) {
           course.push(0);
           continue;
         }
       } else {
-        if (randomInt(100) < 80) {
+        if (randomInt(100) < 60) {
           course.push(0);
           continue;
         }
@@ -85,6 +94,10 @@ function drawPlayer(x, y, radius) {
   ctx.fill(circle);
 };
 
+let upPressed = false;
+document.addEventListener("keydown", keyDownHandler, false);
+document.addEventListener("keyup", keyUpHandler, false);
+
 function keyDownHandler(e) {
   if (e.key == "Up" || e.key == "ArrowUp") {
     upPressed = true;
@@ -105,7 +118,8 @@ function main() {
   setCanvasSize();
   courseBlocks = createCourseBlocks();
 
-  setInterval(function () {
+
+  const game = setInterval(function () {
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
     for (let i = 0; i < laps * courseBlockCountToFillCanvas; i++) { // 101周目(10001個目)以降はindexを1から再使用
@@ -113,33 +127,80 @@ function main() {
       drawRectOnGround(courseBlockWidth * i, courseBlockWidth, courseBlocks[courseIndex])
     }
 
-    const courseHeightAtPlayerIndexInCanvas = courseBlocks[courseStartIndex + playerIndexInCanvas]
-    // Playerの位置でジャンプの可能不可能を判断
-    // コースブロックとほぼ高さ一緒の時
-    if (
-      playerY == courseHeightAtPlayerIndexInCanvas ||
-      playerY == courseHeightAtPlayerIndexInCanvas + diffHeight ||
-      playerY == courseHeightAtPlayerIndexInCanvas - diffHeight
-    ) {
-      if (upPressed) {
-        playerY += dy * 20;
+    const prevPlayerY = playerY;
+    let nextPlayerY;
+
+    const prevCourseHeight =
+      courseBlocks[(courseStartIndex + playerIndexInCanvas - 1) % courseBlocks.length];
+    const nextCourseHeight =
+      courseBlocks[(courseStartIndex + playerIndexInCanvas) % courseBlocks.length];
+
+    if (prevPlayerY > prevCourseHeight) {
+      // ジャンプ中
+      if (prevPlayerY + dy(timeAfterJump) > nextCourseHeight) {
+        // まだ空中
+        if (upPressed && !isRightAfterJump && jumpCount < 2) {
+          timeAfterJump = 0;
+          nextPlayerY = prevPlayerY + dy(timeAfterJump);
+          timeAfterJump++;
+
+          jumpCount++;
+          isRightAfterJump = true;
+          setTimeout(function () {
+            isRightAfterJump = false;
+          }, idleTimeToJump);
+        } else {
+          nextPlayerY = prevPlayerY + dy(timeAfterJump);
+          timeAfterJump++;
+        }
       } else {
-        playerY = courseHeightAtPlayerIndexInCanvas
+        // NOTE: prevPlayerY > nextCourseHeight だと、登りのコースへの着地に失敗する場合がある
+        if (prevPlayerY >= nextCourseHeight - diffHeight) {
+          // 着地OK
+          nextPlayerY = nextCourseHeight;
+          timeAfterJump = 0;
+
+          jumpCount = 0;
+        } else {
+          // 壁にぶつかる
+          clearInterval(game);
+        }
       }
-      // // ジャンプ後落下中の時
-    } else if (
-      playerY >= courseHeightAtPlayerIndexInCanvas &&
-      playerY <= courseHeightAtPlayerIndexInCanvas + dy
-    ) {
-      playerY = courseHeightAtPlayerIndexInCanvas;
-    } else {
-      playerY -= dy;
+    } else if (prevPlayerY === prevCourseHeight) {
+      if (prevPlayerY === 0) {
+        //落下済み
+        clearInterval(game);
+      } else if (
+        // コースが連続
+        prevPlayerY === nextCourseHeight ||
+        prevPlayerY + diffHeight === nextCourseHeight ||
+        prevPlayerY - diffHeight === nextCourseHeight
+      ) {
+        if (upPressed) {
+          timeAfterJump = 0;
+          nextPlayerY = prevPlayerY + dy(timeAfterJump);
+          timeAfterJump++;
+
+          jumpCount++;
+          isRightAfterJump = true;
+          setTimeout(function () {
+            isRightAfterJump = false;
+          }, idleTimeToJump);
+        } else {
+          nextPlayerY = nextCourseHeight;
+        }
+      } else {
+        // 次が崖 または境界
+        timeAfterJump = timeAtMaxHeight;
+        nextPlayerY = prevPlayerY + dy(timeAfterJump);
+        timeAfterJump++;
+      }
     }
 
-    drawPlayer(playerX, playerY, 10);
-    drawRecord();
-    courseStartIndex++;
+    drawPlayer(playerX, playerY = nextPlayerY, 10);
 
+    courseStartIndex++;
+    drawRecord();
   }, 50);
 };
 
