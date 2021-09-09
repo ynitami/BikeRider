@@ -1,0 +1,23 @@
+{
+  "name": "bikerider",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deploy": "firebase deploy"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ynitami/BikeRider.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ynitami/BikeRider/issues"
+  },
+  "homepage": "https://github.com/ynitami/BikeRider#readme",
+  "devDependencies": {
+    "firebase-tools": "^9.18.0"
+  }
+}
