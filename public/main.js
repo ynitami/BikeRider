@@ -1,3 +1,51 @@
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-app.js";
+// import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-analytics.js";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs,
+  query,
+  orderBy,
+  limit
+} from "https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js";
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyC96vZD-UvNInuaJYKik47PcTRhjjEEpJY",
+  authDomain: "bike-rider-fd6c2.firebaseapp.com",
+  projectId: "bike-rider-fd6c2",
+  storageBucket: "bike-rider-fd6c2.appspot.com",
+  messagingSenderId: "205491184817",
+  appId: "1:205491184817:web:35c5db0067993fa5de2e90",
+  measurementId: "G-8WZF58EYDW"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+// const analytics = getAnalytics(app);
+const db = getFirestore(app);
+const scoresRef = collection(db, "scores");
+const scores = document.getElementById("scores");
+// データを1つのオブジェクトにまとめる
+// query(collectionRef, rule1, rule2, ...)
+getDocs(query(scoresRef, orderBy("score", "desc"), limit(3))).then((snap) => {
+  // arrow関数でobjectをすぐに返す場合は()をつける
+  // doc.id === "kxaKJf88Ql8zuIkjJhr9"
+  // doc.data() === {score: 250}
+  const data = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+  data.forEach(number => {
+    const newDiv = document.createElement("div");
+    newDiv.appendChild(document.createTextNode(number.score));
+    scores.appendChild(newDiv);
+  })
+  console.log(data)
+})
+
 /**
  * @type {HTMLCanvasElement}
 */
@@ -115,6 +163,10 @@ function drawRecord() {
 }
 
 function main() {
+  getDocs(scoresRef).then((snap) => {
+    const data = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+    console.log(data)
+  })
   setCanvasSize();
   courseBlocks = createCourseBlocks();
 
@@ -127,7 +179,7 @@ function main() {
       drawRectOnGround(courseBlockWidth * i, courseBlockWidth, courseBlocks[courseIndex])
     }
 
-    const prevPlayerY = playerY; // 1つ前の値
+    const prevPlayerY = playerY; // 1つ前の値 //
     let nextPlayerY; // 今のフレーム
     const prevCourseHeight =
       courseBlocks[(courseStartIndex + playerIndexInCanvas - 1) % courseBlocks.length];
@@ -140,22 +192,26 @@ function main() {
       if (prevPlayerY + dy(timeAfterJump) >= nextCourseHeight) {
         nextPlayerY = prevPlayerY + dy(timeAfterJump);
         timeAfterJump++;
-      } else { // 着地条件
+      } else { // 着地条件 = nextPlayerY <= nextCourseHeight
         // NOTE : 着地成功条件
-        // 1. 前崖(prevCH === 0)：prevPlayerY > nextCourseHeight
-        // 2. 後崖(nextCH === 0)：空中条件に含まれる
-        // 3. 上り(nextCH > prevCH > 0)：prevPlayerY > prevCourseHeight
-        // 4. 下り or 平坦(prevCH >= nextCH > 0)：free
+        // 1. 今崖(prevCH === 0)：prevPlayerY > nextCourseHeight
+        // 2. 次崖(nextCH === 0)：常に nextPY = nextCH = 0 でOK
+        // 3. 上り(nextCH > prevPY > prevCH = nextCH - diffHeight > 0)：常にOK
+        // 4. 下り or 平坦(prevCH >= nextCH > 0)：常にOK
         if (prevPlayerY > nextCourseHeight - diffHeight) {
           nextPlayerY = nextCourseHeight;
           timeAfterJump = 0;
         } else { // 着地失敗
           clearInterval(game);
+          // ドキュメントを追加
+          addDoc(scoresRef, { score: courseStartIndex + 1 });
         }
       }
     } else { // prevPlayerY === prevCourseHeight
       if (prevPlayerY === 0) { //落下済み
         clearInterval(game);
+        // ドキュメントを追加
+        addDoc(scoresRef, { score: courseStartIndex + 1 });
       } else if (upPressed) { // コース上からの鉛直投げ上げ運動
         timeAfterJump = 0;
         nextPlayerY = prevPlayerY + dy(timeAfterJump);
@@ -167,7 +223,7 @@ function main() {
       ) {
         nextPlayerY = nextCourseHeight;
       } else { // 次が崖 or 周回の境界
-        timeAfterJump = timeAtMaxHeight; // 10
+        timeAfterJump = timeAtMaxHeight; // = 10
         nextPlayerY = prevPlayerY + dy(timeAfterJump);
         timeAfterJump++;
       }
