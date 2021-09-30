@@ -81,7 +81,7 @@ let timeAfterJump = timeAtMaxHeight;
 
 let jumpCount = 0;
 let isRightAfterJump = false;
-const idleTimeToJump = 11 * dt;
+const idleTimeToJump = 5 * dt;
 
 function setCanvasSize() {
   canvas.width = canvasWidth;
