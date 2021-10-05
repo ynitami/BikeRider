@@ -1,13 +1,27 @@
-08/17 16:00 ~ 17:00
+・デモ 1m（穴の頻度を低くして易化）
+・実装で難しかった箇所の説明：コースの設計、ジャンプの着地
+ - コース 2m : 意図を口頭で説明（randomInt(3)のみの場合の砂利走→完成版のトレッキングコースも見せる）
+for (let i = 1; i < laps * courseBlockCountToFillCanvas; i++) {
+  if (dh === 0) {                           // 前のブロックが高さ変化なし
+    dh = [-diffHeight, 0, diffHeight][randomInt(3)];
+  } else {
+    if (h > maxHeight) {
+      dh = -diffHeight;
+    } else if (h < minHeight) {
+      dh = diffHeight;
+    } else {
+      dh = [dh, dh, dh, dh, 0][randomInt(5)];
+    }
+  }
+    h += dh;
+    course.push(h);
+  }
+ return course;
+}
 
-1. canvasの用意
-2. コースの実装
-  - （高さの異なる）縦長のブロックを無数に横に並べる[配列]
-  - canvas上で各ブロックを描画する位置を50ミリ秒ごとに移動させる[描画 → クリア → 再描画]
-  - 落とし穴を作る[描画しないブロック]
+ジャンプ 1m
+自由落下（← ワープ＋等速落下 デモ）:
+ dy(timeAfterJump) = v0 - g * timeAfterJump( = 10)
+ 2段ジャンプ（時間に余裕あれば）
 
-
-3. チャリの用意
-  - チャリ（プレイヤー）を描画する
-  - チャリをコースに沿って動かす
-  - ジャンプ機能を作る 
+着地（パワポ1枚に全パターンprev, next） 1m

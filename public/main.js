@@ -141,7 +141,7 @@ function randomInt(num) {
 
 function drawPlayer(x, y, radius) {
   const circle = new Path2D();
-  circle.arc(x, canvasHeight - y - radius, radius, Math.PI, 3 * Math.PI);
+  circle.arc(x, canvasHeight - y - radius, radius, 0, 2 * Math.PI);
   ctx.fillStyle = "blue";
   ctx.fill(circle);
 };

@@ -8,7 +8,7 @@ import {
   collection,
   addDoc,
   getDocs,
-  query, 
+  query,
   orderBy,
   limit
 } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js";
@@ -141,7 +141,7 @@ function randomInt(num) {
 
 function drawPlayer(x, y, radius) {
   const circle = new Path2D();
-  circle.arc(x, canvasHeight - y - radius, radius, Math.PI, 3 * Math.PI);
+  circle.arc(x, canvasHeight - y - radius, radius, 0, 2 * Math.PI);
   ctx.fillStyle = "blue";
   ctx.fill(circle);
 };
@@ -174,7 +174,6 @@ function main() {
   setCanvasSize();
   courseBlocks = createCourseBlocks();
 
-
   const game = setInterval(function () {
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
@@ -198,7 +197,7 @@ function main() {
           timeAfterJump = 0;
           nextPlayerY = prevPlayerY + dy(timeAfterJump);
           timeAfterJump++;
-  
+
           jumpCount++;
           isRightAfterJump = true;
           setTimeout(function () {
@@ -210,7 +209,7 @@ function main() {
         }
       } else { // 着地条件 = nextPlayerY <= nextCourseHeight
         // NOTE : 着地成功条件
-        // 1. 今崖(prevCH === 0)：prevPlayerY > nextCourseHeight
+        // 1. 前崖(prevCH === 0)：prevPlayerY > nextCourseHeight
         // 2. 次崖(nextCH === 0)：常に nextPY = nextCH = 0 でOK
         // 3. 上り(nextCH > prevPY > prevCH = nextCH - diffHeight > 0)：常にOK
         // 4. 下り or 平坦(prevCH >= nextCH > 0)：常にOK
