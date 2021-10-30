@@ -10,7 +10,7 @@ import {
   getDocs,
   query,
   orderBy,
-  limit
+  limit,
 } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore.js";
 
 // Your web app's Firebase configuration
@@ -22,7 +22,7 @@ const firebaseConfig = {
   storageBucket: "bike-rider-fd6c2.appspot.com",
   messagingSenderId: "205491184817",
   appId: "1:205491184817:web:35c5db0067993fa5de2e90",
-  measurementId: "G-8WZF58EYDW"
+  measurementId: "G-8WZF58EYDW",
 };
 
 // Initialize Firebase
@@ -37,18 +37,18 @@ getDocs(query(scoresRef, orderBy("score", "desc"), limit(3))).then((snap) => {
   // arrow関数でobjectをすぐに返す場合は()をつける
   // doc.id === "kxaKJf88Ql8zuIkjJhr9"
   // doc.data() === {score: 250}
-  const data = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-  data.forEach(number => {
+  const data = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  data.forEach((number) => {
     const newDiv = document.createElement("div");
     newDiv.appendChild(document.createTextNode(number.score));
     scores.appendChild(newDiv);
-  })
-  console.log(data)
-})
+  });
+  console.log(data);
+});
 
 /**
  * @type {HTMLCanvasElement}
-*/
+ */
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
@@ -68,20 +68,16 @@ const courseBlockWidth = canvasWidth / courseBlockCountToFillCanvas;
 const playerIndexInCanvas = 20;
 const playerX = courseBlockWidth * playerIndexInCanvas + courseBlockWidth / 2;
 let playerY = canvasHeight - 50;
-const dt = 50;
+// const dt = 50;
 
 function dy(time) {
   const v0 = 30;
   const g = 3;
   let v;
-  return v = v0 - g * time;
+  return (v = v0 - g * time);
 }
 const timeAtMaxHeight = 10;
 let timeAfterJump = timeAtMaxHeight;
-
-let jumpCount = 0;
-let isRightAfterJump = false;
-const idleTimeToJump = 5 * dt;
 
 function setCanvasSize() {
   canvas.width = canvasWidth;
@@ -90,7 +86,7 @@ function setCanvasSize() {
 
 function drawRectOnGround(x, w, h) {
   const y = canvasHeight - h;
-  ctx.fillStyle = "#0095DD";
+  ctx.fillStyle = "black";
   ctx.fillRect(x, y, w, h);
 }
 
@@ -102,7 +98,8 @@ function createCourseBlocks() {
   for (let i = 1; i < laps * courseBlockCountToFillCanvas; i++) {
     // 穴あけ
     if (i > courseBlockCountToFillCanvas) {
-      if (course[i - 1] > 0) {                 // 1つ前にブロックありの場合
+      if (course[i - 1] > 0) {
+        // 1つ前にブロックありの場合
         if (randomInt(100) < 10) {
           course.push(0);
           continue;
@@ -118,7 +115,8 @@ function createCourseBlocks() {
       }
     }
 
-    if (dh === 0) {                           // 前のブロックが高さ変化なし
+    if (dh === 0) {
+      // 前のブロックが高さ変化なし
       dh = [-diffHeight, 0, diffHeight][randomInt(3)];
     } else {
       if (h > maxHeight) {
@@ -141,10 +139,10 @@ function randomInt(num) {
 
 function drawPlayer(x, y, radius) {
   const circle = new Path2D();
-  circle.arc(x, canvasHeight - y - radius, radius, 0, 2 * Math.PI);
+  circle.arc(x, canvasHeight - y - radius, radius, Math.PI, 3 * Math.PI);
   ctx.fillStyle = "black";
   ctx.fill(circle);
-};
+}
 
 let upPressed = false;
 document.addEventListener("keydown", keyDownHandler, false);
@@ -168,47 +166,44 @@ function drawRecord() {
 
 function main() {
   getDocs(scoresRef).then((snap) => {
-    const data = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-    console.log(data)
-  })
+    const data = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    console.log(data);
+  });
   setCanvasSize();
   courseBlocks = createCourseBlocks();
-
 
   const game = setInterval(function () {
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-    for (let i = 0; i < laps * courseBlockCountToFillCanvas; i++) { // 101周目(10001個目)以降はindexを1から再使用
+    for (let i = 0; i < laps * courseBlockCountToFillCanvas; i++) {
+      // 101周目(10001個目)以降はindexを1から再使用
       const courseIndex = (courseStartIndex + i) % courseBlocks.length; // 1st interval: 0~99, 2nd: 1~100,...
-      drawRectOnGround(courseBlockWidth * i, courseBlockWidth, courseBlocks[courseIndex])
+      drawRectOnGround(
+        courseBlockWidth * i,
+        courseBlockWidth,
+        courseBlocks[courseIndex]
+      );
     }
 
     const prevPlayerY = playerY; // 1つ前の値 //
     let nextPlayerY; // 今のフレーム
     const prevCourseHeight =
-      courseBlocks[(courseStartIndex + playerIndexInCanvas - 1) % courseBlocks.length];
+      courseBlocks[
+        (courseStartIndex + playerIndexInCanvas - 1) % courseBlocks.length
+      ];
     const nextCourseHeight = // courseHeightAtPlayerIndexInCanvas
-      courseBlocks[(courseStartIndex + playerIndexInCanvas) % courseBlocks.length];
+      courseBlocks[
+        (courseStartIndex + playerIndexInCanvas) % courseBlocks.length
+      ];
 
     // ジャンプ中 or 落下中
     if (prevPlayerY > prevCourseHeight) {
       // 空中条件
       if (prevPlayerY + dy(timeAfterJump) >= nextCourseHeight) {
-        if (upPressed && !isRightAfterJump && jumpCount < 2) {
-          timeAfterJump = 0;
-          nextPlayerY = prevPlayerY + dy(timeAfterJump);
-          timeAfterJump++;
-
-          jumpCount++;
-          isRightAfterJump = true;
-          setTimeout(function () {
-            isRightAfterJump = false;
-          }, idleTimeToJump);
-        } else {
-          nextPlayerY = prevPlayerY + dy(timeAfterJump);
-          timeAfterJump++;
-        }
-      } else { // 着地条件 = nextPlayerY <= nextCourseHeight
+        nextPlayerY = prevPlayerY + dy(timeAfterJump);
+        timeAfterJump++;
+      } else {
+        // 着地条件 = nextPlayerY <= nextCourseHeight
         // NOTE : 着地成功条件
         // 1. 今崖(prevCH === 0)：prevPlayerY > nextCourseHeight
         // 2. 次崖(nextCH === 0)：常に nextPY = nextCH = 0 でOK
@@ -217,46 +212,44 @@ function main() {
         if (prevPlayerY > nextCourseHeight - diffHeight) {
           nextPlayerY = nextCourseHeight;
           timeAfterJump = 0;
-
-          jumpCount = 0;
-        } else { // 着地失敗
+        } else {
+          // 着地失敗
           clearInterval(game);
           // ドキュメントを追加
           addDoc(scoresRef, { score: courseStartIndex + 1 });
         }
       }
-    } else { // prevPlayerY === prevCourseHeight
-      if (prevPlayerY === 0) { //落下済み
+    } else {
+      // prevPlayerY === prevCourseHeight
+      if (prevPlayerY === 0) {
+        //落下済み
         clearInterval(game);
         // ドキュメントを追加
         addDoc(scoresRef, { score: courseStartIndex + 1 });
-      } else if (upPressed) { // コース上からの鉛直投げ上げ運動
+      } else if (upPressed) {
+        // コース上からの鉛直投げ上げ運動
         timeAfterJump = 0;
         nextPlayerY = prevPlayerY + dy(timeAfterJump);
         timeAfterJump++;
-
-        jumpCount++;
-        isRightAfterJump = true;
-        setTimeout(function () {
-          isRightAfterJump = false;
-        }, idleTimeToJump);
-      } else if ( // コースが連続
+      } else if (
+        // コースが連続
         prevPlayerY === nextCourseHeight ||
         prevPlayerY + diffHeight === nextCourseHeight ||
         prevPlayerY - diffHeight === nextCourseHeight
       ) {
         nextPlayerY = nextCourseHeight;
-      } else { // 次が崖 or 周回の境界
+      } else {
+        // 次が崖 or 周回の境界
         timeAfterJump = timeAtMaxHeight; // = 10
         nextPlayerY = prevPlayerY + dy(timeAfterJump);
         timeAfterJump++;
       }
     }
 
-    drawPlayer(playerX, playerY = nextPlayerY, 10);
+    drawPlayer(playerX, (playerY = nextPlayerY), 10);
     courseStartIndex++;
     drawRecord();
-  }, dt);
-};
+  }, 50);
+}
 
 main();
