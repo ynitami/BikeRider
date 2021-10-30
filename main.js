@@ -68,7 +68,7 @@ const courseBlockWidth = canvasWidth / courseBlockCountToFillCanvas;
 const playerIndexInCanvas = 20;
 const playerX = courseBlockWidth * playerIndexInCanvas + courseBlockWidth / 2;
 let playerY = canvasHeight - 50;
-// const dt = 50;
+const dt = 50;
 
 function dy(time) {
   const v0 = 30;
@@ -78,6 +78,10 @@ function dy(time) {
 }
 const timeAtMaxHeight = 10;
 let timeAfterJump = timeAtMaxHeight;
+
+let jumpCount = 0;
+let isRightAfterJump = false;
+const idleTimeToJump = 5 * dt;
 
 function setCanvasSize() {
   canvas.width = canvasWidth;
@@ -139,7 +143,7 @@ function randomInt(num) {
 
 function drawPlayer(x, y, radius) {
   const circle = new Path2D();
-  circle.arc(x, canvasHeight - y - radius, radius, Math.PI, 3 * Math.PI);
+  circle.arc(x, canvasHeight - y - radius, radius, 0, 2 * Math.PI);
   ctx.fillStyle = "black";
   ctx.fill(circle);
 }
@@ -200,8 +204,20 @@ function main() {
     if (prevPlayerY > prevCourseHeight) {
       // 空中条件
       if (prevPlayerY + dy(timeAfterJump) >= nextCourseHeight) {
-        nextPlayerY = prevPlayerY + dy(timeAfterJump);
-        timeAfterJump++;
+        if (upPressed && !isRightAfterJump && jumpCount < 2) {
+          timeAfterJump = 0;
+          nextPlayerY = prevPlayerY + dy(timeAfterJump);
+          timeAfterJump++;
+
+          jumpCount++;
+          isRightAfterJump = true;
+          setTimeout(function () {
+            isRightAfterJump = false;
+          }, idleTimeToJump);
+        } else {
+          nextPlayerY = prevPlayerY + dy(timeAfterJump);
+          timeAfterJump++;
+        }
       } else {
         // 着地条件 = nextPlayerY <= nextCourseHeight
         // NOTE : 着地成功条件
@@ -212,6 +228,8 @@ function main() {
         if (prevPlayerY > nextCourseHeight - diffHeight) {
           nextPlayerY = nextCourseHeight;
           timeAfterJump = 0;
+
+          jumpCount = 0;
         } else {
           // 着地失敗
           clearInterval(game);
@@ -231,6 +249,12 @@ function main() {
         timeAfterJump = 0;
         nextPlayerY = prevPlayerY + dy(timeAfterJump);
         timeAfterJump++;
+
+        jumpCount++;
+        isRightAfterJump = true;
+        setTimeout(function () {
+          isRightAfterJump = false;
+        }, idleTimeToJump);
       } else if (
         // コースが連続
         prevPlayerY === nextCourseHeight ||
@@ -249,7 +273,7 @@ function main() {
     drawPlayer(playerX, (playerY = nextPlayerY), 10);
     courseStartIndex++;
     drawRecord();
-  }, 50);
+  }, dt);
 }
 
 main();
