@@ -69,19 +69,13 @@ let courseStartIndex = 0;
 const playerIndexInCanvas = 20;
 const playerX = courseBlockWidth * playerIndexInCanvas + courseBlockWidth / 2;
 let playerY = canvasHeight - 50;
+const dy = 5;
 
 const timeAtMaxHeight = 10;
 let timeAfterJump = timeAtMaxHeight;
 let jumpCount = 0;
 let isRightAfterJump = false;
 const idleTimeToJump = 5 * dt;
-
-function dy(time) {
-  const v0 = 30;
-  const g = 3;
-  let v;
-  return (v = v0 - g * time);
-}
 
 function setCanvasSize() {
   canvas.width = canvasWidth;
@@ -203,10 +197,10 @@ function main() {
     // ジャンプ中・落下中
     if (prevPlayerY > prevCourseHeight) {
       // 空中条件
-      if (prevPlayerY + dy(timeAfterJump) >= nextCourseHeight) {
+      if (prevPlayerY - dy >= nextCourseHeight) {
         if (upPressed && !isRightAfterJump && jumpCount < 2) {
           timeAfterJump = 0;
-          nextPlayerY = prevPlayerY + dy(timeAfterJump);
+          nextPlayerY = prevPlayerY + dy * 20;
           timeAfterJump++;
 
           jumpCount++;
@@ -215,17 +209,17 @@ function main() {
             isRightAfterJump = false;
           }, idleTimeToJump);
         } else {
-          nextPlayerY = prevPlayerY + dy(timeAfterJump);
+          nextPlayerY = prevPlayerY - dy;
           timeAfterJump++;
         }
       } else {
         // NOTE : 着地成功条件の仕様 (CH:CourseHeight, PY:PlayerY)
-        // [着地] nextPY = nextCH 
+        // [着地] nextPY = nextCH
         // [前提] prevPY > prevCH &&
-        //       prevPY + dy(timeAfterJump) < nextCH 
+        //       prevPY + dy(timeAfterJump) < nextCH
         // 1. prevCH === 0 ならば : prevPY > nextCH ならば着地.
         // 2. nextCH === 0 ならば : 常に着地. 次のフレームにて着地失敗.
-        // 3. nextCH > prevCH > 0 ならば : 常に着地. prevPY > nextCH - diffHeight 
+        // 3. nextCH > prevCH > 0 ならば : 常に着地. prevPY > nextCH - diffHeight
         // 4. prevCH >= nextCH > 0 ならば : 常に着地.
         if (prevPlayerY > nextCourseHeight - diffHeight) {
           nextPlayerY = nextCourseHeight;
@@ -248,7 +242,7 @@ function main() {
       } else if (upPressed) {
         // コース上からの鉛直投げ上げ運動
         timeAfterJump = 0;
-        nextPlayerY = prevPlayerY + dy(timeAfterJump);
+        nextPlayerY = prevPlayerY + dy * 20;
         timeAfterJump++;
 
         jumpCount++;
@@ -266,7 +260,7 @@ function main() {
       } else {
         // 次が崖 or 周回の境界
         timeAfterJump = timeAtMaxHeight; // = 10
-        nextPlayerY = prevPlayerY + dy(timeAfterJump);
+        nextPlayerY = prevPlayerY - dy;
         timeAfterJump++;
       }
     }

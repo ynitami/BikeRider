@@ -1,4 +1,4 @@
-・[x]デモ 1m（穴の頻度を低くして易化）
+・[x] デモ 1m（穴の頻度を低くして易化）
 ・実装で難しかった箇所の説明：コースの設計、ジャンプの着地
  - コース 2m : 意図を口頭で説明（randomInt(3)のみの場合の砂利走→完成版のトレッキングコースも見せる）
 for (let i = 1; i < laps * courseBlockCountToFillCanvas; i++) {
@@ -20,8 +20,8 @@ for (let i = 1; i < laps * courseBlockCountToFillCanvas; i++) {
 }
 
 ジャンプ 1m
-自由落下（← ワープ＋等速落下 デモ）:
+[x] 自由落下（← ワープ＋等速落下 デモ）:
  dy(timeAfterJump) = v0 - g * timeAfterJump( = 10)
  2段ジャンプ（時間に余裕あれば）
 
-着地（パワポ1枚に全パターンprev, next） 1m
+[x] 着地（パワポ1枚に全パターンprev, next） 1m
