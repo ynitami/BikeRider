@@ -37,10 +37,12 @@ getDocs(query(scoresRef, orderBy("score", "desc"), limit(3))).then((snap) => {
   // arrow関数でobjectをすぐに返す場合は()をつける
   // doc.id === "kxaKJf88Ql8zuIkjJhr9"
   // doc.data() === {score: 250}
-  const data = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  const data = snap.docs.map((doc) => ({ id: doc.id, ...doc.data({ serverTimestamps: 'estimate' }) }));
   data.forEach((number) => {
+    const date = number.createdAt.toDate();
     const newDiv = document.createElement("div");
-    newDiv.appendChild(document.createTextNode(number.score));
+    newDiv.appendChild(document.createTextNode("Score" + number.score + ", Date "));
+    newDiv.appendChild(document.createTextNode(dateFns.format(date, 'MM/d')));
     scores.appendChild(newDiv);
   });
   console.log(data);
@@ -236,7 +238,7 @@ function main() {
           // 着地失敗
           clearInterval(game);
           // ドキュメントを追加
-          addDoc(scoresRef, { score: courseStartIndex + 1 });
+          addDoc(scoresRef, { score: courseStartIndex + 1, createdAt: new Date() });
         }
       }
     } else {
@@ -244,7 +246,7 @@ function main() {
       if (prevPlayerY === 0) {
         clearInterval(game);
         // ドキュメントを追加
-        addDoc(scoresRef, { score: courseStartIndex + 1 });
+        addDoc(scoresRef, { score: courseStartIndex + 1, createdAt: new Date() });
       } else if (upPressed) {
         // コース上からの鉛直投げ上げ運動
         timeAfterJump = 0;

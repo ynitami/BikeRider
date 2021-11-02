@@ -236,7 +236,7 @@ function main() {
           // 着地失敗
           clearInterval(game);
           // ドキュメントを追加
-          addDoc(scoresRef, { score: courseStartIndex + 1 });
+          addDoc(scoresRef, { score: courseStartIndex + 1, createdAt: new Date() });
         }
       }
     } else {
@@ -244,7 +244,7 @@ function main() {
       if (prevPlayerY === 0) {
         clearInterval(game);
         // ドキュメントを追加
-        addDoc(scoresRef, { score: courseStartIndex + 1 });
+        addDoc(scoresRef, { score: courseStartIndex + 1, createdAt: new Date() });
       } else if (upPressed) {
         // コース上からの鉛直投げ上げ運動
         timeAfterJump = 0;
