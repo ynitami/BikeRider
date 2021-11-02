@@ -266,7 +266,7 @@ function main() {
       } else {
         // 次が崖 or 周回の境界
         timeAfterJump = timeAtMaxHeight; // = 10
-        nextPlayerY = prevPlayerY + dy(timeAfterJump);
+        nextPlayerY = prevPlayerY + dy(timeAfterJump+1);
         timeAfterJump++;
       }
     }

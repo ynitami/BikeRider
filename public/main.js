@@ -55,20 +55,26 @@ const ctx = canvas.getContext("2d");
 const canvasWidth = 720;
 const canvasHeight = 480;
 
-let courseBlocks;
-let courseStartIndex = 0;
-
 const maxHeight = 300;
 const minHeight = 50;
 const diffHeight = 5;
 const courseBlockCountToFillCanvas = 100;
 const laps = 100;
 const courseBlockWidth = canvasWidth / courseBlockCountToFillCanvas;
+const dt = 50;
+
+let courseBlocks;
+let courseStartIndex = 0;
 
 const playerIndexInCanvas = 20;
 const playerX = courseBlockWidth * playerIndexInCanvas + courseBlockWidth / 2;
 let playerY = canvasHeight - 50;
-const dt = 50;
+
+const timeAtMaxHeight = 10;
+let timeAfterJump = timeAtMaxHeight;
+let jumpCount = 0;
+let isRightAfterJump = false;
+const idleTimeToJump = 5 * dt;
 
 function dy(time) {
   const v0 = 30;
@@ -76,12 +82,6 @@ function dy(time) {
   let v;
   return (v = v0 - g * time);
 }
-const timeAtMaxHeight = 10;
-let timeAfterJump = timeAtMaxHeight;
-
-let jumpCount = 0;
-let isRightAfterJump = false;
-const idleTimeToJump = 5 * dt;
 
 function setCanvasSize() {
   canvas.width = canvasWidth;
@@ -92,6 +92,37 @@ function drawRectOnGround(x, w, h) {
   const y = canvasHeight - h;
   ctx.fillStyle = "black";
   ctx.fillRect(x, y, w, h);
+}
+
+function drawPlayer(x, y, radius) {
+  const circle = new Path2D();
+  circle.arc(x, canvasHeight - y - radius, radius, 0, 2 * Math.PI);
+  ctx.fillStyle = "black";
+  ctx.fill(circle);
+}
+
+let upPressed = false;
+document.addEventListener("keydown", keyDownHandler, false);
+document.addEventListener("keyup", keyUpHandler, false);
+
+function keyDownHandler(e) {
+  if (e.key == "Up" || e.key == "ArrowUp") {
+    upPressed = true;
+  }
+}
+function keyUpHandler(e) {
+  if (e.key == "Up" || e.key == "ArrowUp") {
+    upPressed = false;
+  }
+}
+
+function drawRecord() {
+  ctx.font = "24px monospace";
+  ctx.fillText(`${courseStartIndex} m`, 60, 40);
+}
+
+function randomInt(num) {
+  return Math.floor(Math.random() * num);
 }
 
 function createCourseBlocks() {
@@ -137,37 +168,6 @@ function createCourseBlocks() {
   return course;
 }
 
-function randomInt(num) {
-  return Math.floor(Math.random() * num);
-}
-
-function drawPlayer(x, y, radius) {
-  const circle = new Path2D();
-  circle.arc(x, canvasHeight - y - radius, radius, 0, 2 * Math.PI);
-  ctx.fillStyle = "black";
-  ctx.fill(circle);
-}
-
-let upPressed = false;
-document.addEventListener("keydown", keyDownHandler, false);
-document.addEventListener("keyup", keyUpHandler, false);
-
-function keyDownHandler(e) {
-  if (e.key == "Up" || e.key == "ArrowUp") {
-    upPressed = true;
-  }
-}
-function keyUpHandler(e) {
-  if (e.key == "Up" || e.key == "ArrowUp") {
-    upPressed = false;
-  }
-}
-
-function drawRecord() {
-  ctx.font = "24px monospace";
-  ctx.fillText(`${courseStartIndex} m`, 60, 40);
-}
-
 function main() {
   getDocs(scoresRef).then((snap) => {
     const data = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
@@ -195,12 +195,12 @@ function main() {
       courseBlocks[
         (courseStartIndex + playerIndexInCanvas - 1) % courseBlocks.length
       ];
-    const nextCourseHeight = // courseHeightAtPlayerIndexInCanvas
+    const nextCourseHeight =
       courseBlocks[
         (courseStartIndex + playerIndexInCanvas) % courseBlocks.length
       ];
 
-    // ジャンプ中 or 落下中
+    // ジャンプ中・落下中
     if (prevPlayerY > prevCourseHeight) {
       // 空中条件
       if (prevPlayerY + dy(timeAfterJump) >= nextCourseHeight) {
@@ -219,12 +219,14 @@ function main() {
           timeAfterJump++;
         }
       } else {
-        // 着地条件 = nextPlayerY <= nextCourseHeight
-        // NOTE : 着地成功条件
-        // 1. 今崖(prevCH === 0)：prevPlayerY > nextCourseHeight
-        // 2. 次崖(nextCH === 0)：常に nextPY = nextCH = 0 でOK
-        // 3. 上り(nextCH > prevPY > prevCH = nextCH - diffHeight > 0)：常にOK
-        // 4. 下り or 平坦(prevCH >= nextCH > 0)：常にOK
+        // NOTE : 着地成功条件の仕様 (CH:CourseHeight, PY:PlayerY)
+        // [着地] nextPY = nextCH 
+        // [前提] prevPY > prevCH &&
+        //       prevPY + dy(timeAfterJump) < nextCH 
+        // 1. prevCH === 0 ならば : prevPY > nextCH ならば着地.
+        // 2. nextCH === 0 ならば : 常に着地. 次のフレームにて着地失敗.
+        // 3. nextCH > prevCH > 0 ならば : 常に着地. prevPY > nextCH - diffHeight 
+        // 4. prevCH >= nextCH > 0 ならば : 常に着地.
         if (prevPlayerY > nextCourseHeight - diffHeight) {
           nextPlayerY = nextCourseHeight;
           timeAfterJump = 0;
@@ -240,7 +242,6 @@ function main() {
     } else {
       // prevPlayerY === prevCourseHeight
       if (prevPlayerY === 0) {
-        //落下済み
         clearInterval(game);
         // ドキュメントを追加
         addDoc(scoresRef, { score: courseStartIndex + 1 });
@@ -265,7 +266,7 @@ function main() {
       } else {
         // 次が崖 or 周回の境界
         timeAfterJump = timeAtMaxHeight; // = 10
-        nextPlayerY = prevPlayerY + dy(timeAfterJump);
+        nextPlayerY = prevPlayerY + dy(timeAfterJump+1);
         timeAfterJump++;
       }
     }
