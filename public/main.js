@@ -171,10 +171,6 @@ function createCourseBlocks() {
 }
 
 function main() {
-  getDocs(scoresRef).then((snap) => {
-    const data = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-    console.log(data);
-  });
   setCanvasSize();
   courseBlocks = createCourseBlocks();
 
