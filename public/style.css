@@ -7,3 +7,7 @@ canvas {
   display: block;
   margin: 0 auto;
 } /* tag を指定 */
+#scores {
+  margin: 10px auto 0px;
+  width: max-content;
+}

@@ -41,8 +41,8 @@ getDocs(query(scoresRef, orderBy("score", "desc"), limit(3))).then((snap) => {
   data.forEach((number) => {
     const date = number.createdAt.toDate();
     const newDiv = document.createElement("div");
-    newDiv.appendChild(document.createTextNode("Score " + number.score + ", Date "));
-    newDiv.appendChild(document.createTextNode(`${date.getMonth()+1} 月 ${date.getDate()} 日 ${date.getHours()} 時 ${date.getMinutes()} 分`));
+    newDiv.appendChild(document.createTextNode("Score " + number.score.toString().padStart(2, '0') + ", Date "));
+    newDiv.appendChild(document.createTextNode(`${(date.getMonth()+1).toString().padStart(2, '0')} 月 ${date.getDate().toString().padStart(2, '0')} 日 ${date.getHours().toString().padStart(2, '0')} 時 ${date.getMinutes().toString().padStart(2, '0')} 分`));
     scores.appendChild(newDiv);
   });
   console.log(data);
